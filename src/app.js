@@ -189,6 +189,21 @@ export function createApp(db) {
     res.redirect(`/tickets/${ticket.id}`);
   });
 
+  app.post('/tickets/:id/status', requireUser, (req, res) => {
+    const ticket = getTicket(parseId(req.params.id));
+    if (!ticket) return fail(req, res, 404, 'Ticket not found.');
+    if (req.user.role !== 'support') return fail(req, res, 403, 'Only support staff can change a ticket status.');
+
+    const status = String(req.body.status ?? '');
+    if (!STATUSES.includes(status)) return fail(req, res, 400, 'Choose a valid status.');
+    if (STATUSES.indexOf(status) <= STATUSES.indexOf(ticket.status)) {
+      return fail(req, res, 400, 'Status can only move forward through Open, In Progress, Resolved, Closed.');
+    }
+    db.prepare('UPDATE tickets SET status = ?, updated_at = ? WHERE id = ?')
+      .run(status, new Date().toISOString(), ticket.id);
+    res.redirect(`/tickets/${ticket.id}`);
+  });
+
   app.use((req, res) => fail(req, res, 404, 'Page not found.'));
   app.use((error, req, res, next) => {
     console.error(error);
