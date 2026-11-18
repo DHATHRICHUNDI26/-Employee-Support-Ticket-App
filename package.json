@@ -1,0 +1,17 @@
+{
+  "name": "employee-support-tickets",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Employee support ticket app (lab project)",
+  "scripts": {
+    "start": "node src/server.js",
+    "test": "node --test tests/*.test.js"
+  },
+  "dependencies": {
+    "express": "^5.1.0"
+  },
+  "engines": {
+    "node": ">=24"
+  }
+}
