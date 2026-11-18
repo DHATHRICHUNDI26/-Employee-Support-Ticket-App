@@ -20,6 +20,16 @@ App started with `npm start` on `http://localhost:3000`; exercised through the i
 1. **Last-updated change is not visible (D-1).** Created and then edited ticket #6, but both dates render as `18 Nov 2026` because `formatDate()` only shows day/month/year. The underlying `updated_at` value changes, but a user cannot see that a same-day change occurred. Fix planned: include the time (UTC) in the displayed last-updated value.
 2. **Comment form present before its endpoint (D-2).** The detail page renders the comment form even though the comments feature is implemented in the next planned step. Not a runtime defect once step 5 lands; verify submission then.
 
+## Comment feature re-check (after step 5)
+| Check | How | Result |
+| --- | --- | --- |
+| Comment on Closed ticket | Ravi comments on ticket #5 in the browser | Pass — comment appears under Comments; closed note remains |
+| Empty / overlong comment | HTTP POST with blank body and 2001 chars | Pass — 400 with friendly error |
+| Unauthorized comment | Priya posts to Ravi's ticket | Pass — 403 |
+| Trim & timestamp | HTTP POST with padded body | Pass — stored trimmed; ticket `updated_at` refreshed |
+| Stale process | Page hit 502/404 because the server was started before the new route | Process issue only — restarted server, then all checks passed |
+
 ## Notes
 - Browser automation produced one stale-ref click error and one filter form with extra query parameters; both were tooling artefacts, not app behaviour. Re-snapshotting and re-navigating gave correct results.
 - No browser console errors were observed on the pages visited.
+- D-2 is resolved by the comments endpoint; D-1 remains open for the defect-fix step.

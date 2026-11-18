@@ -204,6 +204,29 @@ export function createApp(db) {
     res.redirect(`/tickets/${ticket.id}`);
   });
 
+  app.post('/tickets/:id/comments', requireUser, (req, res) => {
+    const ticket = getTicket(parseId(req.params.id));
+    if (!ticket) return fail(req, res, 404, 'Ticket not found.');
+    if (!canView(req.user, ticket)) return fail(req, res, 403, 'You do not have access to this ticket.');
+
+    const body = String(req.body.body ?? '').trim();
+    if (!body || body.length > 2000) {
+      return res.status(400).send(view.renderDetail({
+        ticket,
+        comments: getComments(ticket.id),
+        user: req.user,
+        commentError: 'Comment must contain between 1 and 2000 characters.',
+        commentBody: body,
+      }));
+    }
+    db.prepare(`
+      INSERT INTO comments (ticket_id, author_id, body, created_at) VALUES (?, ?, ?, ?)
+    `).run(ticket.id, req.user.id, body, new Date().toISOString());
+    db.prepare('UPDATE tickets SET updated_at = ? WHERE id = ?')
+      .run(new Date().toISOString(), ticket.id);
+    res.redirect(`/tickets/${ticket.id}#comments`);
+  });
+
   app.use((req, res) => fail(req, res, 404, 'Page not found.'));
   app.use((error, req, res, next) => {
     console.error(error);
